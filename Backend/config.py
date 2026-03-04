@@ -34,10 +34,10 @@ class Settings(BaseSettings):
     ENV: str = "dev"  # dev|prod
 
     # Database
-    DATABASE_URL: str = "sqlite:///../test.db"
+    DATABASE_URL: str = "postgresql://counterscam_db_user:8uuSOihc9HqJqjwaV73dwyFwpuWa8LYl@dpg-d6jur0i4d50c73d13gc0-a/counterscam_db"
 
     # JWT
-    JWT_SECRET_KEY: str = ""  # REQUIRED in prod
+    JWT_SECRET_KEY: str = "supersecretkey"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
