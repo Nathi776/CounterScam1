@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: counterscam-backend
+    env: python
+    plan: starter
+    rootDir: Backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && gunicorn -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120
+    envVars:
+      - key: ENV
+        value: prod
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
+      - key: RATE_LIMIT_DEFAULT
+        value: "60/minute"
+      - key: SOCKET_TIMEOUT_SECONDS
+        value: "5.0"
+      - key: CORS_ORIGINS
+        value: '["http://localhost:3000"]'
+      - key: MODEL_DIR
+        value: "models"
+      - key: MODEL_VERSION
+        value: "v1"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: counterscam-db
+          property: connectionString
+
+databases:
+  - name: counterscam-db
+    plan: starter
