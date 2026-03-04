@@ -2,6 +2,7 @@ services:
   - type: web
     name: counterscam-backend
     env: python
+    runtime: python-3.11.9
     plan: starter
     rootDir: Backend
     buildCommand: pip install -r requirements.txt
