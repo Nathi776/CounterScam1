@@ -2,7 +2,6 @@ services:
   - type: web
     name: counterscam-backend
     env: python
-    pythonVersion: "3.12"
     plan: starter
     rootDir: Backend
     buildCommand: pip install -r requirements.txt
@@ -19,7 +18,7 @@ services:
       - key: SOCKET_TIMEOUT_SECONDS
         value: "5.0"
       - key: CORS_ORIGINS
-        value: '["http://localhost:3000"]'
+        value: '["*"]'
       - key: MODEL_DIR
         value: "models"
       - key: MODEL_VERSION
