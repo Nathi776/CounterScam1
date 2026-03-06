@@ -246,6 +246,30 @@ def monitor(request: Request, payload: MonitorRequest, api_key=Depends(require_a
 
 
 # ---------------- Admin API (dashboard) ----------------
+@app.post("/bootstrap-admin")
+def bootstrap_admin(db=Depends(get_db)):
+    email = "admin@test.com"
+    password = "password123"
+
+    existing = db.query(User).filter(User.email == email).first()
+    if existing:
+        return {"status": "exists", "email": email}
+
+    user = User(
+        email=email,
+        password_hash=hash_password(password),
+        role="admin",
+        is_active=True,
+    )
+    db.add(user)
+    db.commit()
+
+    return {
+        "status": "created",
+        "email": email,
+        "password": password,
+    }
+
 
 @app.post("/admin/login")
 def admin_login(payload: AdminLoginRequest, db=Depends(get_db)):
