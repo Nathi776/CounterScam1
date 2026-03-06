@@ -25,6 +25,9 @@ def get_db():
 
 
 def hash_password(password: str) -> str:
+    # bcrypt has a 72 byte limit; truncate if necessary
+    if len(password.encode('utf-8')) > 72:
+        password = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
     return pwd_context.hash(password)
 
 
