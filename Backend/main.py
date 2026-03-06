@@ -248,27 +248,34 @@ def monitor(request: Request, payload: MonitorRequest, api_key=Depends(require_a
 # ---------------- Admin API (dashboard) ----------------
 @app.post("/bootstrap-admin")
 def bootstrap_admin(db=Depends(get_db)):
-    email = "admin@test.com"
-    password = "password123"
+    try:
+        # make sure tables exist
+        init_db()
 
-    existing = db.query(User).filter(User.email == email).first()
-    if existing:
-        return {"status": "exists", "email": email}
+        email = "admin@test.com"
+        password = "password123"
 
-    user = User(
-        email=email,
-        password_hash=hash_password(password),
-        role="admin",
-        is_active=True,
-    )
-    db.add(user)
-    db.commit()
+        existing = db.query(User).filter(User.email == email).first()
+        if existing:
+            return {"status": "exists", "email": email}
 
-    return {
-        "status": "created",
-        "email": email,
-        "password": password,
-    }
+        user = User(
+            email=email,
+            password_hash=hash_password(password),
+            role="admin",
+            is_active=True,
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+        return {
+            "status": "created",
+            "email": email,
+            "password": password
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/admin/login")
