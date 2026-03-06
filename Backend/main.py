@@ -100,7 +100,7 @@ def _startup() -> None:
     global URL_PIPE, MSG_PIPE, MODEL_VERSION, MODEL_STATUS, MODEL_ERROR
 
     # Dev convenience only. In prod use Alembic migrations.
-     try:
+    try:
         init_db()
         logger.info("db_init_ok")
     except Exception:
