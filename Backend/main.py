@@ -209,7 +209,7 @@ def check_message(request: Request, payload: MessageRequest, api_key=Depends(req
         raise HTTPException(status_code=503, detail=f"Model not loaded: {MODEL_ERROR or 'unknown'}")
 
     try:
-        result = calculate_message_risk_score(payload.message, MSG_PIPE)
+        result = calculate_message_risk_score(payload.message, MSG_PIPE, URL_PIPE)
         flagged = str(result.get("flagged"))
         reason = result.get("reason", "")
         db.add(MessageCheck(message=payload.message, flagged=flagged, reason=reason))
