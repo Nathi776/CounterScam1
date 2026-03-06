@@ -6,7 +6,7 @@ from fastapi import Header, HTTPException, Depends
 
 from database import SessionLocal, ApiKey, ApiUsage
 
-pwd_context = CryptContext(schemes=["bcrypt_sha256"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 
 def get_db():
