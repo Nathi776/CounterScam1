@@ -12,7 +12,7 @@ from config import settings
 from database import SessionLocal, User
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt_sha256"], deprecated="auto")
 security = HTTPBearer()
 
 
