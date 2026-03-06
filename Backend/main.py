@@ -100,12 +100,11 @@ def _startup() -> None:
     global URL_PIPE, MSG_PIPE, MODEL_VERSION, MODEL_STATUS, MODEL_ERROR
 
     # Dev convenience only. In prod use Alembic migrations.
-    if settings.ENV.lower() != "prod":
-        try:
-            init_db()
-            logger.info("db_init_ok")
-        except Exception:
-            logger.error("db_init_failed", exc_info=True)
+     try:
+        init_db()
+        logger.info("db_init_ok")
+    except Exception:
+        logger.error("db_init_failed", exc_info=True)
 
     # Load pipelines (safe loader)
     try:
