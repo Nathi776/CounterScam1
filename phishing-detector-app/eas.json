@@ -6,13 +6,25 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://counterscam1-1.onrender.com",
+        "EXPO_PUBLIC_API_KEY": "1r9bVV2J3SFU77FFp31d2uuu5wCjiecatDwl95Gx7-g"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://counterscam1-1.onrender.com",
+        "EXPO_PUBLIC_API_KEY": "1r9bVV2J3SFU77FFp31d2uuu5wCjiecatDwl95Gx7-g"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "https://counterscam1-1.onrender.com",
+        "EXPO_PUBLIC_API_KEY": "1r9bVV2J3SFU77FFp31d2uuu5wCjiecatDwl95Gx7-g"
+      }
     }
   },
   "submit": {

@@ -1,9 +1,5 @@
 import axios from "axios";
 
-// For Expo / real devices, "localhost" points to the phone itself.
-// Set these in phishing-detector-app/.env:
-//   EXPO_PUBLIC_API_BASE_URL=https://your-backend.onrender.com
-//   EXPO_PUBLIC_API_KEY=your_customer_api_key
 const API_BASE = process.env.EXPO_PUBLIC_API_BASE_URL || "https://counterscam1-1.onrender.com";
 const API_KEY = process.env.EXPO_PUBLIC_API_KEY || "";
 
