@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 import {
   Box,
   Paper,
@@ -9,6 +8,7 @@ import {
   Alert,
 } from "@mui/material";
 import ShieldIcon from "@mui/icons-material/Shield";
+import { login } from "../api/api";
 
 export default function Login({ setToken }) {
   const [email, setEmail] = useState("");
@@ -20,10 +20,10 @@ export default function Login({ setToken }) {
     setError("");
 
     try {
-      const res = await axios.post("/admin/login", { email, password });
-      setToken(res.data.access_token);
+      const res = await login(email, password);
+      setToken(res.access_token);
     } catch (err) {
-      setError(err?.response?.data?.detail || "Login failed");
+      setError(err.message || "Login failed");
     }
   };
 
