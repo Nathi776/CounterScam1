@@ -1,7 +1,6 @@
-// admin-dashboard/src/api/api.js
 
 const API_BASE =
-  process.env.REACT_APP_API_BASE_URL || "http://127.0.0.1:8000";
+  process.env.REACT_APP_API_BASE_URL || "https://counterscam1-1.onrender.com";
 
 // ---- helper ----
 async function request(path, options = {}) {
@@ -35,7 +34,7 @@ async function request(path, options = {}) {
 
 // ---- AUTH ----
 export async function login(email, password) {
-  return request("/auth/login", {
+  return request("/admin/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
@@ -54,6 +53,11 @@ export async function getAnalytics() {
   return request("/admin/analytics");
 }
 
+export async function getReports() {
+  return request("/admin/reports");
+}
+
+
 // ---- API KEYS ----
 export async function createApiKey(owner_email, plan = "free") {
   return request("/admin/api-keys", {
@@ -71,6 +75,7 @@ const api = {
   getStats,
   getRecentChecks,
   getAnalytics,
+  getReports,
   createApiKey,
   listApiKeys,
 };

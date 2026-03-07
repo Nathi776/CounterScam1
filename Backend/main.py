@@ -382,3 +382,17 @@ def analytics(db=Depends(get_db), _=Depends(require_admin)):
         "url_reason_top": [{"reason": k, "count": v} for k, v in url_counts],
         "message_reason_top": [{"reason": k, "count": v} for k, v in msg_counts],
     }
+
+@app.get("/admin/reports")
+def get_reports(db=Depends(get_db), _=Depends(require_admin)):
+    rows = db.query(ReportContent).order_by(ReportContent.reported_at.desc()).limit(200).all()
+
+    return [
+        {
+            "id": r.id,
+            "content_type": r.content_type,
+            "content": r.content,
+            "reported_at": r.reported_at.isoformat() if r.reported_at else None,
+        }
+        for r in rows
+    ]

@@ -58,6 +58,15 @@ class ReportContent(Base):
 
 # ---------------- New production tables ----------------
 
+class ReportContent(Base):
+    __tablename__ = "report_contents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    content_type = Column(String(50), nullable=False)  # url|message
+    content = Column(Text, nullable=False)
+    reported_at = Column(DateTime, default=datetime.utcnow)
+    
+
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)

@@ -53,9 +53,9 @@ const verdictChip = (verdict) => {
 };
 
 export default function Dashboard() {
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({});
   const [recent, setRecent] = useState([]);
-  const [analytics, setAnalytics] = useState(null);
+  const [analytics, setAnalytics] = useState({});
   const [loading, setLoading] = useState(true);
 
   const loadData = async () => {
@@ -67,11 +67,35 @@ export default function Dashboard() {
         getAnalytics(),
       ]);
 
-      setStats(statsRes.data);
-      setRecent(Array.isArray(recentRes.data) ? recentRes.data : []);
-      setAnalytics(analyticsRes.data);
+      setStats(statsRes || {});
+      setRecent(
+        Array.isArray(recentRes?.urls) || Array.isArray(recentRes?.messages)
+          ? [
+              ...(recentRes?.urls || []).map((u, i) => ({
+                id: `url-${i}`,
+                type: "url",
+                verdict: u.flagged === "True" ? "phishing" : "safe",
+                risk_score: "-",
+                value: u.url,
+                created_at: u.checked_at,
+              })),
+              ...(recentRes?.messages || []).map((m, i) => ({
+                id: `msg-${i}`,
+                type: "message",
+                verdict: m.flagged === "True" ? "phishing" : "safe",
+                risk_score: "-",
+                value: m.message,
+                created_at: m.checked_at,
+              })),
+            ]
+          : []
+      );
+      setAnalytics(analyticsRes || {});
     } catch (err) {
       console.error(err);
+      setStats({});
+      setRecent([]);
+      setAnalytics({});
     } finally {
       setLoading(false);
     }
@@ -87,17 +111,21 @@ export default function Dashboard() {
   };
 
   const attackTrend = useMemo(() => {
-    const trend = analytics?.attack_trend || [];
+    const urlTop = analytics?.url_reason_top || [];
     return {
-      labels: trend.map((t) => t.date),
-      datasets: [{ label: "Checks", data: trend.map((t) => t.count) }],
+      labels: urlTop.map((t) => t.reason),
+      datasets: [{ label: "Flagged", data: urlTop.map((t) => t.count) }],
     };
   }, [analytics]);
 
   const pieData = useMemo(() => {
     return {
-      labels: ["Phishing", "Safe"],
-      datasets: [{ data: [stats?.phishing_detected || 0, stats?.safe || 0] }],
+      labels: ["Flagged URLs", "Flagged Messages"],
+      datasets: [
+        {
+          data: [stats?.flagged_urls || 0, stats?.flagged_messages || 0],
+        },
+      ],
     };
   }, [stats]);
 
@@ -110,8 +138,12 @@ export default function Dashboard() {
   };
 
   return (
-    <AppShell title="Admin Dashboard" onRefresh={loadData} onLogout={logout}>
-      {/* OVERVIEW */}
+    <AppShell
+      title="Admin Dashboard"
+      onRefresh={loadData}
+      onLogout={logout}
+      currentView="dashboard"
+    >
       <Box id="overview" sx={{ mb: 2 }}>
         <Typography variant="h4">Security Overview</Typography>
         <Typography sx={{ opacity: 0.7, mt: 0.5 }}>
@@ -124,7 +156,7 @@ export default function Dashboard() {
           {loading ? (
             <Skeleton variant="rounded" height={110} />
           ) : (
-            <StatCard title="Total checks" value={stats.total_checks} />
+            <StatCard title="Total URLs" value={stats.total_urls || 0} />
           )}
         </Grid>
 
@@ -132,7 +164,7 @@ export default function Dashboard() {
           {loading ? (
             <Skeleton variant="rounded" height={110} />
           ) : (
-            <StatCard title="Phishing detected" value={stats.phishing_detected} />
+            <StatCard title="Total messages" value={stats.total_messages || 0} />
           )}
         </Grid>
 
@@ -140,7 +172,7 @@ export default function Dashboard() {
           {loading ? (
             <Skeleton variant="rounded" height={110} />
           ) : (
-            <StatCard title="Safe" value={stats.safe} />
+            <StatCard title="Flagged URLs" value={stats.flagged_urls || 0} />
           )}
         </Grid>
 
@@ -148,20 +180,11 @@ export default function Dashboard() {
           {loading ? (
             <Skeleton variant="rounded" height={110} />
           ) : (
-            <StatCard
-              title="Flag rate"
-              value={
-                stats.total_checks
-                  ? `${Math.round((stats.phishing_detected / stats.total_checks) * 100)}%`
-                  : "0%"
-              }
-              hint="phishing/total"
-            />
+            <StatCard title="Flagged messages" value={stats.flagged_messages || 0} />
           )}
         </Grid>
       </Grid>
 
-      {/* RECENT TABLE */}
       <Paper id="recent" sx={{ mt: 3, p: 2.5, borderRadius: 4 }}>
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Box>
@@ -268,13 +291,12 @@ export default function Dashboard() {
         )}
       </Paper>
 
-      {/* ANALYTICS */}
       <Grid id="analytics" container spacing={2.5} sx={{ mt: 0.5 }}>
         <Grid item xs={12} md={7}>
           <Paper sx={{ mt: 3, p: 2.5, borderRadius: 4 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: 16 }}>Attack trend</Typography>
+            <Typography sx={{ fontWeight: 900, fontSize: 16 }}>Top URL reasons</Typography>
             <Typography sx={{ fontSize: 12, opacity: 0.7, mb: 2 }}>
-              Checks per day (last 7 days)
+              Most common URL flag reasons
             </Typography>
 
             {loading ? (
@@ -298,10 +320,10 @@ export default function Dashboard() {
         <Grid item xs={12} md={5}>
           <Paper sx={{ mt: 3, p: 2.5, borderRadius: 4 }}>
             <Typography sx={{ fontWeight: 900, fontSize: 16 }}>
-              Phishing vs Safe
+              Flagged distribution
             </Typography>
             <Typography sx={{ fontSize: 12, opacity: 0.7, mb: 2 }}>
-              Overall distribution
+              URLs vs messages
             </Typography>
 
             {loading ? (
@@ -319,13 +341,12 @@ export default function Dashboard() {
         </Grid>
       </Grid>
 
-      {/* TOP DOMAINS */}
       <Paper sx={{ mt: 3, p: 2.5, borderRadius: 4 }}>
         <Typography sx={{ fontWeight: 900, fontSize: 16 }}>
-          Most targeted domains
+          Top message reasons
         </Typography>
         <Typography sx={{ fontSize: 12, opacity: 0.7, mb: 2 }}>
-          Based on flagged activity
+          Based on flagged message activity
         </Typography>
 
         {loading ? (
@@ -334,11 +355,11 @@ export default function Dashboard() {
             <Skeleton variant="rounded" height={34} />
             <Skeleton variant="rounded" height={34} />
           </Box>
-        ) : (analytics?.top_domains || []).length === 0 ? (
-          <Typography sx={{ opacity: 0.7 }}>No targeted domains yet.</Typography>
+        ) : (analytics?.message_reason_top || []).length === 0 ? (
+          <Typography sx={{ opacity: 0.7 }}>No flagged message reasons yet.</Typography>
         ) : (
           <Box sx={{ display: "grid", gap: 1 }}>
-            {analytics.top_domains.map((d, i) => (
+            {analytics.message_reason_top.map((d, i) => (
               <Paper
                 key={i}
                 sx={{
@@ -350,8 +371,8 @@ export default function Dashboard() {
                   alignItems: "center",
                 }}
               >
-                <Typography sx={{ fontWeight: 800 }}>{d.domain}</Typography>
-                <Chip label={`${d.count} attacks`} size="small" />
+                <Typography sx={{ fontWeight: 800 }}>{d.reason}</Typography>
+                <Chip label={`${d.count} hits`} size="small" />
               </Paper>
             ))}
           </Box>

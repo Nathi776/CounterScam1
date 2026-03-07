@@ -16,22 +16,40 @@ import {
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import LinkIcon from "@mui/icons-material/Link";
 import TimelineIcon from "@mui/icons-material/Timeline";
+import ReportIcon from "@mui/icons-material/Report";
 import LogoutIcon from "@mui/icons-material/Logout";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ShieldIcon from "@mui/icons-material/Shield";
 
 const drawerWidth = 260;
 
-export default function AppShell({ title, onRefresh, onLogout, children }) {
+export default function AppShell({
+  title,
+  onRefresh,
+  onLogout,
+  children,
+  currentView,
+  setCurrentView,
+}) {
   const nav = [
     { label: "Overview", icon: <DashboardIcon />, target: "overview" },
     { label: "Recent checks", icon: <LinkIcon />, target: "recent" },
     { label: "Analytics", icon: <TimelineIcon />, target: "analytics" },
+    { label: "Reports", icon: <ReportIcon />, target: "reports" },
   ];
 
-  const scrollTo = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  const handleNavClick = (target) => {
+    if (target === "reports") {
+      setCurrentView("reports");
+      return;
+    }
+
+    setCurrentView("dashboard");
+
+    setTimeout(() => {
+      const el = document.getElementById(target);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
   };
 
   return (
@@ -92,7 +110,11 @@ export default function AppShell({ title, onRefresh, onLogout, children }) {
             {nav.map((n) => (
               <ListItemButton
                 key={n.target}
-                onClick={() => scrollTo(n.target)}
+                selected={
+                  (currentView === "reports" && n.target === "reports") ||
+                  (currentView === "dashboard" && ["overview", "recent", "analytics"].includes(n.target))
+                }
+                onClick={() => handleNavClick(n.target)}
                 sx={{
                   borderRadius: 3,
                   mb: 0.5,
