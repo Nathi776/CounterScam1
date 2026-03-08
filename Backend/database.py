@@ -48,12 +48,6 @@ class MessageCheck(Base):
     checked_at = Column(DateTime, default=datetime.utcnow)
 
 
-class ReportContent(Base):
-    __tablename__ = "report_contents"
-    id = Column(Integer, primary_key=True, index=True)
-    content_type = Column(String, nullable=False)
-    content = Column(Text, nullable=False)
-    reported_at = Column(DateTime, default=datetime.utcnow)
 
 
 # ---------------- New production tables ----------------
