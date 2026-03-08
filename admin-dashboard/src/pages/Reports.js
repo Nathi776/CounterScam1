@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from "react";
 import {
   Box,
-  Paper,
   Typography,
-  Chip,
-  Stack,
-  Skeleton,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import AppShell from "../components/AppShell";
-import { getReports } from "../api/api";
+import ReportsTable from "../components/ReportsTable";
+import {
+  getReports,
+  confirmReport,
+  markReportSafe,
+  deleteReport,
+} from "../api/api";
 
 export default function Reports() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
 
   const loadReports = async () => {
     setLoading(true);
@@ -22,6 +27,11 @@ export default function Reports() {
     } catch (err) {
       console.error(err);
       setReports([]);
+      setToast({
+        open: true,
+        message: err.message || "Failed to load reports",
+        severity: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -36,6 +46,36 @@ export default function Reports() {
     window.location.reload();
   };
 
+  const handleConfirm = async (id) => {
+    try {
+      await confirmReport(id);
+      await loadReports();
+      setToast({ open: true, message: "Report confirmed as scam", severity: "success" });
+    } catch (err) {
+      setToast({ open: true, message: err.message || "Failed to confirm report", severity: "error" });
+    }
+  };
+
+  const handleSafe = async (id) => {
+    try {
+      await markReportSafe(id);
+      await loadReports();
+      setToast({ open: true, message: "Report marked safe", severity: "success" });
+    } catch (err) {
+      setToast({ open: true, message: err.message || "Failed to update report", severity: "error" });
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteReport(id);
+      await loadReports();
+      setToast({ open: true, message: "Report deleted", severity: "success" });
+    } catch (err) {
+      setToast({ open: true, message: err.message || "Failed to delete report", severity: "error" });
+    }
+  };
+
   return (
     <AppShell
       title="Reported Scams"
@@ -46,58 +86,36 @@ export default function Reports() {
       <Box sx={{ mb: 2 }}>
         <Typography variant="h4">Reported Scams</Typography>
         <Typography sx={{ opacity: 0.7, mt: 0.5 }}>
-          User-submitted scam links and messages.
+          Review user-submitted scam links and messages.
         </Typography>
       </Box>
 
-      {loading ? (
-        <Stack spacing={2}>
-          <Skeleton variant="rounded" height={100} />
-          <Skeleton variant="rounded" height={100} />
-          <Skeleton variant="rounded" height={100} />
-        </Stack>
-      ) : reports.length === 0 ? (
-        <Paper sx={{ p: 3, borderRadius: 4 }}>
-          <Typography sx={{ opacity: 0.7 }}>No reports yet.</Typography>
-        </Paper>
-      ) : (
-        <Stack spacing={2}>
-          {reports.map((report) => (
-            <Paper key={report.id} sx={{ p: 2.5, borderRadius: 4 }}>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 1.5,
-                }}
-              >
-                <Chip
-                  label={report.content_type}
-                  size="small"
-                  color={report.content_type === "url" ? "warning" : "info"}
-                  sx={{ textTransform: "uppercase", fontWeight: 800 }}
-                />
-                <Typography sx={{ fontSize: 12, opacity: 0.7 }}>
-                  {report.created_at
-                    ? new Date(report.created_at).toLocaleString()
-                    : "-"}
-                </Typography>
-              </Box>
-
-              <Typography
-                sx={{
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  fontSize: 14,
-                }}
-              >
-                {report.content}
-              </Typography>
-            </Paper>
-          ))}
-        </Stack>
+      {!loading && (
+        <ReportsTable
+          reports={reports}
+          onConfirm={handleConfirm}
+          onMarkSafe={handleSafe}
+          onDelete={handleDelete}
+        />
       )}
+
+      {loading && (
+        <Typography sx={{ opacity: 0.7 }}>Loading reports...</Typography>
+      )}
+
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={3000}
+        onClose={() => setToast({ ...toast, open: false })}
+      >
+        <Alert
+          severity={toast.severity}
+          onClose={() => setToast({ ...toast, open: false })}
+          sx={{ width: "100%" }}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </AppShell>
   );
 }

@@ -385,14 +385,48 @@ def analytics(db=Depends(get_db), _=Depends(require_admin)):
 
 @app.get("/admin/reports")
 def get_reports(db=Depends(get_db), _=Depends(require_admin)):
-    rows = db.query(ReportContent).order_by(ReportContent.reported_at.desc()).limit(200).all()
+    rows = db.query(ReportContent).order_by(ReportContent.created_at.desc()).limit(200).all()
 
     return [
         {
             "id": r.id,
             "content_type": r.content_type,
             "content": r.content,
-            "reported_at": r.reported_at.isoformat() if r.reported_at else None,
+            "status": r.status,
+            "created_at": r.created_at.isoformat() if r.created_at else None,
         }
         for r in rows
     ]
+
+
+@app.patch("/admin/reports/{report_id}/confirm")
+def confirm_report(report_id: int, db=Depends(get_db), _=Depends(require_admin)):
+    report = db.query(ReportContent).filter(ReportContent.id == report_id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    report.status = "confirmed"
+    db.commit()
+    return {"status": "updated", "id": report.id, "new_status": report.status}
+
+
+@app.patch("/admin/reports/{report_id}/safe")
+def mark_report_safe(report_id: int, db=Depends(get_db), _=Depends(require_admin)):
+    report = db.query(ReportContent).filter(ReportContent.id == report_id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    report.status = "safe"
+    db.commit()
+    return {"status": "updated", "id": report.id, "new_status": report.status}
+
+
+@app.delete("/admin/reports/{report_id}")
+def delete_report(report_id: int, db=Depends(get_db), _=Depends(require_admin)):
+    report = db.query(ReportContent).filter(ReportContent.id == report_id).first()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    db.delete(report)
+    db.commit()
+    return {"status": "deleted", "id": report_id}

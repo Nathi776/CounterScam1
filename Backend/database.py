@@ -7,11 +7,6 @@ from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from config import settings
 
 
-"""Database configuration.
-
-- In production, DATABASE_URL is provided by Render Postgres.
-- In development, we fall back to a local SQLite database.
-"""
 
 BASE_DIR = os.path.dirname(__file__)
 DEFAULT_SQLITE_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "test.db"))
@@ -58,6 +53,7 @@ class ReportContent(Base):
     id = Column(Integer, primary_key=True, index=True)
     content_type = Column(String(50), nullable=False)  # url|message
     content = Column(Text, nullable=False)
+    status = Column(String(30), default="pending", nullable=False)  # pending|reviewed|dismissed
     created_at = Column(DateTime, default=datetime.utcnow)
     
 

@@ -19,7 +19,7 @@ import TimelineIcon from "@mui/icons-material/Timeline";
 import LogoutIcon from "@mui/icons-material/Logout";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ShieldIcon from "@mui/icons-material/Shield";
-import ReportIcon from "@mui/icons-material/Report";
+//import ReportIcon from "@mui/icons-material/Report";
 
 const drawerWidth = 260;
 
@@ -34,7 +34,7 @@ export default function AppShell({
     { label: "Overview", icon: <DashboardIcon />, target: "overview" },
     { label: "Recent checks", icon: <LinkIcon />, target: "recent" },
     { label: "Analytics", icon: <TimelineIcon />, target: "analytics" },
-    { label: "Reports", icon: <ReportIcon />, target: "reports-page" },
+    { label: "Reports", icon: <ShieldIcon />, target: "reports-page" },
   ];
 
   const goToReports = () => {

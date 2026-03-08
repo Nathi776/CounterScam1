@@ -57,6 +57,24 @@ export async function getReports() {
   return request("/admin/reports");
 }
 
+export async function confirmReport(reportId) {
+  return request(`/admin/reports/${reportId}/confirm`, {
+    method: "PATCH",
+  });
+}
+
+export async function markReportSafe(reportId) {
+  return request(`/admin/reports/${reportId}/safe`, {
+    method: "PATCH",
+  });
+}
+
+export async function deleteReport(reportId) {
+  return request(`/admin/reports/${reportId}`, {
+    method: "DELETE",
+  });
+}
+
 
 // ---- API KEYS ----
 export async function createApiKey(owner_email, plan = "free") {
@@ -76,6 +94,9 @@ const api = {
   getRecentChecks,
   getAnalytics,
   getReports,
+  confirmReport,
+  markReportSafe,
+  deleteReport,
   createApiKey,
   listApiKeys,
 };
