@@ -16,18 +16,25 @@ export default function ReportScreen() {
   const submit = async () => {
     setStatus("");
     setLoading(true);
+
     try {
-      // Adjust endpoint if needed (check /docs)
-      await api.post("/report/", {
-        type,
-        value: value.trim(),
-        details: details.trim(),
-      });
+      const payload = {
+        content_type: type,
+        content: details.trim()
+          ? `${value.trim()}\n\nDetails: ${details.trim()}`
+          : value.trim(),
+      };
+
+      await api.post("/report/", payload);
+
       setStatus("✅ Report submitted. Thank you!");
       setValue("");
       setDetails("");
     } catch (e) {
-      setStatus("❌ Could not submit report. Try again.");
+      console.log("REPORT ERROR:", e?.response?.data || e.message);
+      setStatus(
+        `❌ ${e?.response?.data?.detail || "Could not submit report. Try again."}`
+      );
     } finally {
       setLoading(false);
     }
