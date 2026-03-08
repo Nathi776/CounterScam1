@@ -402,7 +402,7 @@ def get_reports(db=Depends(get_db), _=Depends(require_admin)):
             "id": r.id,
             "content_type": r.content_type,
             "content": r.content,
-            "status": r.status,
+            "status": getattr(r, "status", "pending"),
             "created_at": r.created_at.isoformat() if r.created_at else None,
         }
         for r in rows
