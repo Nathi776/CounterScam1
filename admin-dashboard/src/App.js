@@ -6,7 +6,9 @@ import Reports from "./pages/Reports";
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
 
-  if (!token) return <Login setToken={setToken} />;
+  if (!token) {
+    return <Login setToken={setToken} />;
+  }
 
   const isReportsPage = window.location.hash === "#reports";
 
