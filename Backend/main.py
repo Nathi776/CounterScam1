@@ -70,8 +70,8 @@ def _rate_limit_handler(request: Request, exc: RateLimitExceeded):
 
 @app.exception_handler(SQLAlchemyError)
 def _db_error_handler(request: Request, exc: SQLAlchemyError):
-    logger.error("db_error", extra={"path": request.url.path}, exc_info=True)
-    return JSONResponse(status_code=500, content={"detail": "Database error"})
+    print("DB ERROR ON", request.url.path, ":", repr(exc))
+    return JSONResponse(status_code=500, content={"detail": str(exc)})
 
 
 @app.exception_handler(Exception)
@@ -228,13 +228,21 @@ def check_message(request: Request, payload: MessageRequest, api_key=Depends(req
 @limiter.limit("20/minute")
 def report(request: Request, payload: ReportRequest, api_key=Depends(require_api_key), db=Depends(get_db)):
     try:
-        db.add(ReportContent(content_type=payload.content_type, content=payload.content))
+        row = ReportContent(
+            content_type=payload.content_type,
+            content=payload.content,
+        )
+        db.add(row)
         db.commit()
+        db.refresh(row)
+
         record_usage(db, api_key, endpoint="/report/", method="POST", status_code=200, units=1)
-        return {"status": "received"}
-    except Exception:
+        return {"status": "received", "id": row.id}
+    except Exception as e:
+        db.rollback()
+        print("REPORT INSERT ERROR:", repr(e))
         record_usage(db, api_key, endpoint="/report/", method="POST", status_code=500, units=1)
-        raise
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/monitor/")
