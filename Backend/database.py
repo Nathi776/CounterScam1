@@ -53,7 +53,7 @@ class ReportContent(Base):
     id = Column(Integer, primary_key=True, index=True)
     content_type = Column(String(50), nullable=False)  # url|message
     content = Column(Text, nullable=False)
-    #status = Column(String(30), default="pending", nullable=False)  # pending|reviewed|dismissed
+    status = Column(String(30), default="pending", nullable=False)  # pending|reviewed|dismissed
     created_at = Column(DateTime, default=datetime.utcnow)
     
 

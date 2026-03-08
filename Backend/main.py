@@ -97,27 +97,43 @@ MODEL_STATUS = "not_loaded"
 MODEL_ERROR = None
 
 
+from sqlalchemy import text
+
 @app.on_event("startup")
 def _startup() -> None:
     global URL_PIPE, MSG_PIPE, MODEL_VERSION, MODEL_STATUS, MODEL_ERROR
 
-    # Dev convenience only. In prod use Alembic migrations.
     try:
         init_db()
+
+        db = SessionLocal()
+        try:
+            db.execute(text("""
+                ALTER TABLE report_contents
+                ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            """))
+            db.execute(text("""
+                ALTER TABLE report_contents
+                ADD COLUMN IF NOT EXISTS status VARCHAR(30) NOT NULL DEFAULT 'pending'
+            """))
+            db.commit()
+        finally:
+            db.close()
+
         logger.info("db_init_ok")
     except Exception:
         logger.error("db_init_failed", exc_info=True)
 
-    # Load pipelines (safe loader)
     try:
         URL_PIPE, MSG_PIPE, MODEL_VERSION = load_pipelines()
         MODEL_STATUS = "loaded"
         MODEL_ERROR = None
+        logger.info("Models loaded")
     except ModelLoadError as e:
         MODEL_STATUS = "error"
         MODEL_ERROR = str(e)
         logger.error(f"model_load_failed: {e}")
-    except Exception as e:
+    except Exception:
         MODEL_STATUS = "error"
         MODEL_ERROR = "Unexpected model load error"
         logger.error("model_load_failed_unexpected", exc_info=True)
