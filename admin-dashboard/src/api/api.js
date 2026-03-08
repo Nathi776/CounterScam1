@@ -75,6 +75,10 @@ export async function deleteReport(reportId) {
   });
 }
 
+export async function getIntelligence() {
+  return request("/admin/intelligence");
+}
+
 
 // ---- API KEYS ----
 export async function createApiKey(owner_email, plan = "free") {
@@ -94,6 +98,7 @@ const api = {
   getRecentChecks,
   getAnalytics,
   getReports,
+  getIntelligence,
   confirmReport,
   markReportSafe,
   deleteReport,

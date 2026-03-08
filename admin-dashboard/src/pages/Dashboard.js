@@ -8,6 +8,8 @@ import {
 import StatCard from "../components/StatCard";
 import AppShell from "../components/AppShell";
 import ReportsTable from "../components/ReportsTable";
+import ScamIntelligencePanel from "../components/ScamIntelligencePanel";
+import { getIntelligence } from "../api/api";
 
 import {
   Box,
@@ -65,18 +67,21 @@ export default function Dashboard() {
   const [analytics, setAnalytics] = useState({});
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [intelligence, setIntelligence] = useState({});
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const [statsRes, recentRes, analyticsRes, reportsRes] = await Promise.all([
+      const [statsRes, recentRes, analyticsRes, reportsRes, intelligenceRes] = await Promise.all([
         getStats(),
         getRecentChecks(),
         getAnalytics(),
         getReports(),
+        getIntelligence(),
       ]);
 
       setStats(statsRes || {});
+      setIntelligence(intelligenceRes || {});
 
       const recentUrls = (recentRes?.urls || []).map((u, i) => ({
         id: `url-${i}`,
@@ -113,6 +118,7 @@ export default function Dashboard() {
       setRecent([]);
       setAnalytics({});
       setReports([]);
+      setIntelligence({});
     } finally {
       setLoading(false);
     }
@@ -554,6 +560,8 @@ export default function Dashboard() {
 
         <ReportsTable reports={reports} />
       </Box>
+
+      <ScamIntelligencePanel intelligence={intelligence} loading={loading} />
       
     </AppShell>
   );

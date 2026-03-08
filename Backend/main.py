@@ -3,6 +3,8 @@ import os
 import socket
 from datetime import datetime, timedelta
 from collections import Counter
+import re
+from urllib.parse import urlparse
 
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -430,3 +432,69 @@ def delete_report(report_id: int, db=Depends(get_db), _=Depends(require_admin)):
     db.delete(report)
     db.commit()
     return {"status": "deleted", "id": report_id}
+
+
+@app.get("/admin/intelligence")
+def get_intelligence(db=Depends(get_db), _=Depends(require_admin)):
+    reports = db.query(ReportContent).order_by(ReportContent.created_at.desc()).all()
+
+    total_reports = len(reports)
+    url_reports = [r for r in reports if r.content_type == "url"]
+    message_reports = [r for r in reports if r.content_type == "message"]
+
+    # Top reported domains
+    domains = []
+    for r in url_reports:
+        try:
+            parsed = urlparse(r.content)
+            domain = parsed.netloc or parsed.path
+            domain = domain.lower().replace("www.", "").strip()
+            if domain:
+                domains.append(domain)
+        except Exception:
+            continue
+
+    top_domains = [
+        {"domain": domain, "count": count}
+        for domain, count in Counter(domains).most_common(10)
+    ]
+
+    # Top scam keywords from message reports
+    stopwords = {
+        "the", "and", "for", "you", "your", "that", "with", "this", "have",
+        "from", "are", "was", "will", "has", "http", "https", "www", "com",
+        "net", "org", "co", "za", "our", "but", "not", "all", "get", "now",
+        "here", "click", "please", "dial"
+    }
+
+    words = []
+    for r in message_reports:
+        tokens = re.findall(r"\b[a-zA-Z]{4,}\b", r.content.lower())
+        words.extend([t for t in tokens if t not in stopwords])
+
+    top_keywords = [
+        {"keyword": word, "count": count}
+        for word, count in Counter(words).most_common(10)
+    ]
+
+    latest_reports = [
+        {
+            "id": r.id,
+            "content_type": r.content_type,
+            "content": r.content,
+            "status": getattr(r, "status", "pending"),
+            "created_at": r.created_at.isoformat() if r.created_at else None,
+        }
+        for r in reports[:10]
+    ]
+
+    return {
+        "summary": {
+            "total_reports": total_reports,
+            "url_reports": len(url_reports),
+            "message_reports": len(message_reports),
+        },
+        "top_domains": top_domains,
+        "top_keywords": top_keywords,
+        "latest_reports": latest_reports,
+    }
