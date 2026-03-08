@@ -16,10 +16,10 @@ import {
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import LinkIcon from "@mui/icons-material/Link";
 import TimelineIcon from "@mui/icons-material/Timeline";
-import ReportIcon from "@mui/icons-material/Report";
 import LogoutIcon from "@mui/icons-material/Logout";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ShieldIcon from "@mui/icons-material/Shield";
+import ReportIcon from "@mui/icons-material/Report";
 
 const drawerWidth = 260;
 
@@ -28,28 +28,38 @@ export default function AppShell({
   onRefresh,
   onLogout,
   children,
-  currentView,
-  setCurrentView,
+  currentView = "dashboard",
 }) {
   const nav = [
     { label: "Overview", icon: <DashboardIcon />, target: "overview" },
     { label: "Recent checks", icon: <LinkIcon />, target: "recent" },
     { label: "Analytics", icon: <TimelineIcon />, target: "analytics" },
-    { label: "Reports", icon: <ReportIcon />, target: "reports" },
+    { label: "Reports", icon: <ReportIcon />, target: "reports-page" },
   ];
 
-  const handleNavClick = (target) => {
-    if (target === "reports") {
-      setCurrentView("reports");
+  const goToReports = () => {
+    window.location.hash = "#reports";
+    window.location.reload();
+  };
+
+  const goToDashboard = () => {
+    window.location.hash = "";
+    window.location.reload();
+  };
+
+  const scrollTo = (id) => {
+    if (id === "reports-page") {
+      goToReports();
       return;
     }
 
-    setCurrentView("dashboard");
+    if (currentView === "reports") {
+      goToDashboard();
+      return;
+    }
 
-    setTimeout(() => {
-      const el = document.getElementById(target);
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
@@ -110,11 +120,11 @@ export default function AppShell({
             {nav.map((n) => (
               <ListItemButton
                 key={n.target}
+                onClick={() => scrollTo(n.target)}
                 selected={
-                  (currentView === "reports" && n.target === "reports") ||
-                  (currentView === "dashboard" && ["overview", "recent", "analytics"].includes(n.target))
+                  (currentView === "reports" && n.target === "reports-page") ||
+                  (currentView !== "reports" && n.target !== "reports-page")
                 }
-                onClick={() => handleNavClick(n.target)}
                 sx={{
                   borderRadius: 3,
                   mb: 0.5,
@@ -132,7 +142,9 @@ export default function AppShell({
           <Box sx={{ mt: 2, p: 2, borderRadius: 4, bgcolor: "rgba(255,255,255,0.04)" }}>
             <Typography sx={{ fontWeight: 800, fontSize: 13 }}>Tip</Typography>
             <Typography sx={{ fontSize: 12, opacity: 0.75, mt: 0.5 }}>
-              Run a few URL checks to see your charts and recent history update.
+              {currentView === "reports"
+                ? "Review user-submitted scam reports here."
+                : "Run a few URL checks to see your charts and recent history update."}
             </Typography>
           </Box>
         </Box>

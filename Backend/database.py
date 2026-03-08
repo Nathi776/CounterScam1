@@ -64,7 +64,7 @@ class ReportContent(Base):
     id = Column(Integer, primary_key=True, index=True)
     content_type = Column(String(50), nullable=False)  # url|message
     content = Column(Text, nullable=False)
-    reported_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
     
 
 class User(Base):

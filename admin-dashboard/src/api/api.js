@@ -32,7 +32,7 @@ async function request(path, options = {}) {
   return data;
 }
 
-// ---- AUTH ----
+// ---- Login ----
 export async function login(email, password) {
   return request("/admin/login", {
     method: "POST",
