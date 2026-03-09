@@ -4,16 +4,13 @@ import {
   getRecentChecks,
   getAnalytics,
   getReports,
+  getIntelligence,
 } from "../api/api";
-import StatCard from "../components/StatCard";
 import AppShell from "../components/AppShell";
-import ReportsTable from "../components/ReportsTable";
 import ScamIntelligencePanel from "../components/ScamIntelligencePanel";
-import { getIntelligence } from "../api/api";
 
 import {
   Box,
-  Grid,
   Paper,
   Typography,
   Chip,
@@ -54,6 +51,18 @@ ChartJS.register(
   ArcElement
 );
 
+function StatCard({ title, value, hint }) {
+  return (
+    <Paper sx={{ p: 2.5, borderRadius: 4, height: "100%" }}>
+      <Typography sx={{ fontSize: 12, opacity: 0.7 }}>{title}</Typography>
+      <Typography sx={{ fontSize: 28, fontWeight: 900, mt: 0.75 }}>{value}</Typography>
+      {hint ? (
+        <Typography sx={{ fontSize: 12, opacity: 0.65, mt: 0.75 }}>{hint}</Typography>
+      ) : null}
+    </Paper>
+  );
+}
+
 const verdictChip = (verdict) => {
   const v = (verdict || "").toLowerCase();
   if (v === "phishing") return { label: "phishing", color: "error" };
@@ -61,7 +70,7 @@ const verdictChip = (verdict) => {
   return { label: v || "safe", color: "success" };
 };
 
-export default function Dashboard() {
+export default function Dashboard({ setView }) {
   const [stats, setStats] = useState({});
   const [recent, setRecent] = useState([]);
   const [analytics, setAnalytics] = useState({});
@@ -146,20 +155,18 @@ export default function Dashboard() {
     };
   }, [analytics]);
 
-  const pieData = useMemo(() => {
-    return {
-      labels: ["Flagged URLs", "Flagged Messages", "Reports"],
-      datasets: [
-        {
-          data: [
-            stats?.flagged_urls || 0,
-            stats?.flagged_messages || 0,
-            stats?.total_reports || 0,
-          ],
-        },
-      ],
-    };
-  }, [stats]);
+  const pieData = useMemo(() => ({
+    labels: ["Flagged URLs", "Flagged Messages", "Reports"],
+    datasets: [
+      {
+        data: [
+          stats?.flagged_urls || 0,
+          stats?.flagged_messages || 0,
+          stats?.total_reports || 0,
+        ],
+      },
+    ],
+  }), [stats]);
 
   const copyText = async (text) => {
     try {
@@ -169,20 +176,17 @@ export default function Dashboard() {
     }
   };
 
-  const totalChecks =
-    (stats?.total_urls || 0) + (stats?.total_messages || 0);
-  const totalFlagged =
-    (stats?.flagged_urls || 0) + (stats?.flagged_messages || 0);
-  const flagRate = totalChecks
-    ? `${Math.round((totalFlagged / totalChecks) * 100)}%`
-    : "0%";
+  const totalChecks = (stats?.total_urls || 0) + (stats?.total_messages || 0);
+  const totalFlagged = (stats?.flagged_urls || 0) + (stats?.flagged_messages || 0);
+  const flagRate = totalChecks ? `${Math.round((totalFlagged / totalChecks) * 100)}%` : "0%";
 
   return (
     <AppShell
       title="Admin Dashboard"
       onRefresh={loadData}
       onLogout={logout}
-      currentView="dashboard"
+      currentView="overview"
+      setView={setView}
     >
       <Box id="overview" sx={{ mb: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 800 }}>
@@ -193,100 +197,85 @@ export default function Dashboard() {
         </Typography>
       </Box>
 
-      <Grid container spacing={2.5}>
-        <Grid item xs={12} md={3}>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", xl: "repeat(4, 1fr)" },
+          gap: 2.5,
+        }}
+      >
+        {loading ? <Skeleton variant="rounded" height={110} /> : <StatCard title="Total Scans" value={totalChecks} />}
+        {loading ? <Skeleton variant="rounded" height={110} /> : <StatCard title="Flagged Detections" value={totalFlagged} />}
+        {loading ? <Skeleton variant="rounded" height={110} /> : <StatCard title="Total Reports" value={stats.total_reports || 0} />}
+        {loading ? (
+          <Skeleton variant="rounded" height={110} />
+        ) : (
+          <StatCard title="Flag Rate" value={flagRate} hint="flagged / total scans" />
+        )}
+      </Box>
+
+      <Box
+        id="analytics"
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 7fr) minmax(320px, 5fr)" },
+          gap: 2.5,
+          mt: 2.5,
+        }}
+      >
+        <Paper sx={{ p: 2.5, borderRadius: 4 }}>
+          <Typography sx={{ fontWeight: 900, fontSize: 16 }}>
+            Top URL flag reasons
+          </Typography>
+          <Typography sx={{ fontSize: 12, opacity: 0.7, mb: 2 }}>
+            Most common reasons suspicious URLs are being flagged
+          </Typography>
+
           {loading ? (
-            <Skeleton variant="rounded" height={110} />
+            <Skeleton variant="rounded" height={280} />
+          ) : (analytics?.url_reason_top || []).length === 0 ? (
+            <Typography sx={{ opacity: 0.7 }}>
+              No flagged URL reasons yet.
+            </Typography>
           ) : (
-            <StatCard title="Total Scans" value={totalChecks} />
+            <Bar
+              data={attackTrend}
+              options={{
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { grid: { display: false } },
+                  y: { grid: { color: "rgba(255,255,255,0.06)" } },
+                },
+              }}
+            />
           )}
-        </Grid>
+        </Paper>
 
-        <Grid item xs={12} md={3}>
+        <Paper sx={{ p: 2.5, borderRadius: 4 }}>
+          <Typography sx={{ fontWeight: 900, fontSize: 16 }}>
+            Detection distribution
+          </Typography>
+          <Typography sx={{ fontSize: 12, opacity: 0.7, mb: 2 }}>
+            URLs, messages, and reports at a glance
+          </Typography>
+
           {loading ? (
-            <Skeleton variant="rounded" height={110} />
+            <Skeleton variant="rounded" height={280} />
           ) : (
-            <StatCard title="Flagged Detections" value={totalFlagged} />
+            <Pie
+              data={pieData}
+              options={{
+                responsive: true,
+                plugins: { legend: { position: "bottom" } },
+              }}
+            />
           )}
-        </Grid>
-
-        <Grid item xs={12} md={3}>
-          {loading ? (
-            <Skeleton variant="rounded" height={110} />
-          ) : (
-            <StatCard title="Total Reports" value={stats.total_reports || 0} />
-          )}
-        </Grid>
-
-        <Grid item xs={12} md={3}>
-          {loading ? (
-            <Skeleton variant="rounded" height={110} />
-          ) : (
-            <StatCard title="Flag Rate" value={flagRate} hint="flagged / total scans" />
-          )}
-        </Grid>
-      </Grid>
-
-      <Grid id="analytics" container spacing={2.5} sx={{ mt: 0.5 }}>
-        <Grid item xs={12} md={7}>
-          <Paper sx={{ mt: 3, p: 2.5, borderRadius: 4 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: 16 }}>
-              Top URL flag reasons
-            </Typography>
-            <Typography sx={{ fontSize: 12, opacity: 0.7, mb: 2 }}>
-              Most common reasons suspicious URLs are being flagged
-            </Typography>
-
-            {loading ? (
-              <Skeleton variant="rounded" height={280} />
-            ) : (analytics?.url_reason_top || []).length === 0 ? (
-              <Typography sx={{ opacity: 0.7 }}>
-                No flagged URL reasons yet.
-              </Typography>
-            ) : (
-              <Bar
-                data={attackTrend}
-                options={{
-                  responsive: true,
-                  plugins: { legend: { display: false } },
-                  scales: {
-                    x: { grid: { display: false } },
-                    y: { grid: { color: "rgba(255,255,255,0.06)" } },
-                  },
-                }}
-              />
-            )}
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={5}>
-          <Paper sx={{ mt: 3, p: 2.5, borderRadius: 4 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: 16 }}>
-              Detection distribution
-            </Typography>
-            <Typography sx={{ fontSize: 12, opacity: 0.7, mb: 2 }}>
-              URLs, messages, and reports at a glance
-            </Typography>
-
-            {loading ? (
-              <Skeleton variant="rounded" height={280} />
-            ) : (
-              <Pie
-                data={pieData}
-                options={{
-                  responsive: true,
-                  plugins: { legend: { position: "bottom" } },
-                }}
-              />
-            )}
-          </Paper>
-        </Grid>
-      </Grid>
+        </Paper>
+      </Box>
 
       <Paper id="recent" sx={{ mt: 3, p: 2.5, borderRadius: 4 }}>
-        <Box
-          sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}
-        >
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2, flexWrap: "wrap" }}>
           <Box>
             <Typography sx={{ fontWeight: 900, fontSize: 16 }}>
               Recent scans
@@ -385,10 +374,7 @@ export default function Dashboard() {
 
                       <TableCell align="right">
                         <Tooltip title="Copy">
-                          <IconButton
-                            size="small"
-                            onClick={() => copyText(r.value || "")}
-                          >
+                          <IconButton size="small" onClick={() => copyText(r.value || "")}>
                             <ContentCopyIcon fontSize="inherit" />
                           </IconButton>
                         </Tooltip>
@@ -402,127 +388,124 @@ export default function Dashboard() {
         )}
       </Paper>
 
-      <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ mt: 3, p: 2.5, borderRadius: 4 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: 16 }}>
-              Latest user reports
-            </Typography>
-            <Typography sx={{ fontSize: 12, opacity: 0.7, mb: 2 }}>
-              Recently reported scam links and messages
-            </Typography>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", lg: "repeat(2, 1fr)" },
+          gap: 2.5,
+          mt: 2.5,
+        }}
+      >
+        <Paper sx={{ p: 2.5, borderRadius: 4 }}>
+          <Typography sx={{ fontWeight: 900, fontSize: 16 }}>
+            Latest user reports
+          </Typography>
+          <Typography sx={{ fontSize: 12, opacity: 0.7, mb: 2 }}>
+            Recently reported scam links and messages
+          </Typography>
 
-            {loading ? (
-              <Stack spacing={1}>
-                <Skeleton variant="rounded" height={58} />
-                <Skeleton variant="rounded" height={58} />
-                <Skeleton variant="rounded" height={58} />
-              </Stack>
-            ) : reports.length === 0 ? (
-              <Typography sx={{ opacity: 0.7 }}>No scam reports yet.</Typography>
-            ) : (
-              <Box sx={{ display: "grid", gap: 1 }}>
-                {reports.map((r) => (
-                  <Paper
-                    key={r.id}
+          {loading ? (
+            <Stack spacing={1}>
+              <Skeleton variant="rounded" height={58} />
+              <Skeleton variant="rounded" height={58} />
+              <Skeleton variant="rounded" height={58} />
+            </Stack>
+          ) : reports.length === 0 ? (
+            <Typography sx={{ opacity: 0.7 }}>No scam reports yet.</Typography>
+          ) : (
+            <Box sx={{ display: "grid", gap: 1 }}>
+              {reports.map((r) => (
+                <Paper
+                  key={r.id}
+                  sx={{
+                    p: 1.6,
+                    borderRadius: 3,
+                    bgcolor: "rgba(255,255,255,0.03)",
+                  }}
+                >
+                  <Box
                     sx={{
-                      p: 1.6,
-                      borderRadius: 3,
-                      bgcolor: "rgba(255,255,255,0.03)",
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        mb: 0.8,
-                      }}
-                    >
-                      <Chip
-                        label={r.content_type}
-                        size="small"
-                        color={r.content_type === "url" ? "warning" : "info"}
-                        sx={{ textTransform: "uppercase", fontWeight: 800 }}
-                      />
-                      <Typography sx={{ fontSize: 12, opacity: 0.7 }}>
-                        {r.created_at
-                          ? new Date(r.created_at).toLocaleString()
-                          : "-"}
-                      </Typography>
-                    </Box>
-
-                    <Typography
-                      sx={{
-                        fontSize: 13,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                      title={r.content}
-                    >
-                      {r.content}
-                    </Typography>
-                  </Paper>
-                ))}
-              </Box>
-            )}
-          </Paper>
-        </Grid>
-
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ mt: 3, p: 2.5, borderRadius: 4 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: 16 }}>
-              Top message reasons
-            </Typography>
-            <Typography sx={{ fontSize: 12, opacity: 0.7, mb: 2 }}>
-              Most common reasons suspicious messages are being flagged
-            </Typography>
-
-            {loading ? (
-              <Box sx={{ display: "grid", gap: 1 }}>
-                <Skeleton variant="rounded" height={34} />
-                <Skeleton variant="rounded" height={34} />
-                <Skeleton variant="rounded" height={34} />
-              </Box>
-            ) : (analytics?.message_reason_top || []).length === 0 ? (
-              <Typography sx={{ opacity: 0.7 }}>
-                No flagged message reasons yet.
-              </Typography>
-            ) : (
-              <Box sx={{ display: "grid", gap: 1 }}>
-                {analytics.message_reason_top.map((d, i) => (
-                  <Paper
-                    key={i}
-                    sx={{
-                      p: 1.6,
-                      borderRadius: 3,
-                      bgcolor: "rgba(255,255,255,0.03)",
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
+                      mb: 0.8,
+                      gap: 1,
+                      flexWrap: "wrap",
                     }}
                   >
-                    <Typography sx={{ fontWeight: 800 }}>{d.reason}</Typography>
-                    <Chip label={`${d.count} hits`} size="small" />
-                  </Paper>
-                ))}
-              </Box>
-            )}
-          </Paper>
-        </Grid>
-      </Grid>
+                    <Chip
+                      label={r.content_type}
+                      size="small"
+                      color={r.content_type === "url" ? "warning" : "info"}
+                      sx={{ textTransform: "uppercase", fontWeight: 800 }}
+                    />
+                    <Typography sx={{ fontSize: 12, opacity: 0.7 }}>
+                      {r.created_at ? new Date(r.created_at).toLocaleString() : "-"}
+                    </Typography>
+                  </Box>
 
-      <Box id="reports" sx={{ mt: 4 }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>
-          Scam Reports
-        </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: 13,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                    title={r.content}
+                  >
+                    {r.content}
+                  </Typography>
+                </Paper>
+              ))}
+            </Box>
+          )}
+        </Paper>
 
-        <ReportsTable reports={reports} />
+        <Paper sx={{ p: 2.5, borderRadius: 4 }}>
+          <Typography sx={{ fontWeight: 900, fontSize: 16 }}>
+            Top message reasons
+          </Typography>
+          <Typography sx={{ fontSize: 12, opacity: 0.7, mb: 2 }}>
+            Most common reasons suspicious messages are being flagged
+          </Typography>
+
+          {loading ? (
+            <Box sx={{ display: "grid", gap: 1 }}>
+              <Skeleton variant="rounded" height={34} />
+              <Skeleton variant="rounded" height={34} />
+              <Skeleton variant="rounded" height={34} />
+            </Box>
+          ) : (analytics?.message_reason_top || []).length === 0 ? (
+            <Typography sx={{ opacity: 0.7 }}>
+              No flagged message reasons yet.
+            </Typography>
+          ) : (
+            <Box sx={{ display: "grid", gap: 1 }}>
+              {analytics.message_reason_top.map((d, i) => (
+                <Paper
+                  key={`${d.reason}-${i}`}
+                  sx={{
+                    p: 1.6,
+                    borderRadius: 3,
+                    bgcolor: "rgba(255,255,255,0.03)",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 800 }}>{d.reason}</Typography>
+                  <Chip label={`${d.count} hits`} size="small" />
+                </Paper>
+              ))}
+            </Box>
+          )}
+        </Paper>
       </Box>
 
-      <ScamIntelligencePanel intelligence={intelligence} loading={loading} />
-      
+      <Box id="reports" sx={{ mt: 4 }}>
+        <ScamIntelligencePanel intelligence={intelligence} loading={loading} />
+      </Box>
     </AppShell>
   );
 }

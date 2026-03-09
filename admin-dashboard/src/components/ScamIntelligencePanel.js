@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Box,
-  Grid,
   Paper,
   Typography,
   Chip,
@@ -41,81 +40,90 @@ export default function ScamIntelligencePanel({ intelligence, loading }) {
         Scam Intelligence
       </Typography>
 
-      <Grid container spacing={2.5}>
-        <Grid item xs={12} md={4}>
-          <SummaryCard title="Total Reports" value={summary.total_reports || 0} />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <SummaryCard title="URL Reports" value={summary.url_reports || 0} color="warning" />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <SummaryCard title="Message Reports" value={summary.message_reports || 0} color="info" />
-        </Grid>
-      </Grid>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
+          gap: 2.5,
+        }}
+      >
+        <SummaryCard title="Total Reports" value={summary.total_reports || 0} />
+        <SummaryCard title="URL Reports" value={summary.url_reports || 0} color="warning" />
+        <SummaryCard title="Message Reports" value={summary.message_reports || 0} color="info" />
+      </Box>
 
-      <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2.5, borderRadius: 4, height: "100%" }}>
-            <Typography sx={{ fontWeight: 900, mb: 2 }}>
-              Top Scam Domains
-            </Typography>
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "repeat(2, 1fr)" },
+          gap: 2.5,
+          mt: 2.5,
+        }}
+      >
+        <Paper sx={{ p: 2.5, borderRadius: 4, height: "100%" }}>
+          <Typography sx={{ fontWeight: 900, mb: 2 }}>
+            Top Scam Domains
+          </Typography>
 
-            {topDomains.length === 0 ? (
-              <Typography sx={{ opacity: 0.7 }}>No domain intelligence yet.</Typography>
-            ) : (
-              <Stack spacing={1.2}>
-                {topDomains.map((d, i) => (
-                  <Box
-                    key={i}
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      p: 1.2,
-                      borderRadius: 2,
-                      bgcolor: "rgba(255,255,255,0.03)",
-                    }}
-                  >
-                    <Typography sx={{ fontWeight: 700 }}>{d.domain}</Typography>
-                    <Chip label={`${d.count} reports`} size="small" />
-                  </Box>
-                ))}
-              </Stack>
-            )}
-          </Paper>
-        </Grid>
+          {topDomains.length === 0 ? (
+            <Typography sx={{ opacity: 0.7 }}>No domain intelligence yet.</Typography>
+          ) : (
+            <Stack spacing={1.2}>
+              {topDomains.map((d, i) => (
+                <Box
+                  key={`${d.domain}-${i}`}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    p: 1.2,
+                    borderRadius: 2,
+                    bgcolor: "rgba(255,255,255,0.03)",
+                    gap: 1,
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 700, wordBreak: "break-word" }}>
+                    {d.domain}
+                  </Typography>
+                  <Chip label={`${d.count} reports`} size="small" />
+                </Box>
+              ))}
+            </Stack>
+          )}
+        </Paper>
 
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2.5, borderRadius: 4, height: "100%" }}>
-            <Typography sx={{ fontWeight: 900, mb: 2 }}>
-              Top Scam Keywords
-            </Typography>
+        <Paper sx={{ p: 2.5, borderRadius: 4, height: "100%" }}>
+          <Typography sx={{ fontWeight: 900, mb: 2 }}>
+            Top Scam Keywords
+          </Typography>
 
-            {topKeywords.length === 0 ? (
-              <Typography sx={{ opacity: 0.7 }}>No keyword intelligence yet.</Typography>
-            ) : (
-              <Stack spacing={1.2}>
-                {topKeywords.map((k, i) => (
-                  <Box
-                    key={i}
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      p: 1.2,
-                      borderRadius: 2,
-                      bgcolor: "rgba(255,255,255,0.03)",
-                    }}
-                  >
-                    <Typography sx={{ fontWeight: 700 }}>{k.keyword}</Typography>
-                    <Chip label={`${k.count} hits`} size="small" />
-                  </Box>
-                ))}
-              </Stack>
-            )}
-          </Paper>
-        </Grid>
-      </Grid>
+          {topKeywords.length === 0 ? (
+            <Typography sx={{ opacity: 0.7 }}>No keyword intelligence yet.</Typography>
+          ) : (
+            <Stack spacing={1.2}>
+              {topKeywords.map((k, i) => (
+                <Box
+                  key={`${k.keyword}-${i}`}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    p: 1.2,
+                    borderRadius: 2,
+                    bgcolor: "rgba(255,255,255,0.03)",
+                    gap: 1,
+                  }}
+                >
+                  <Typography sx={{ fontWeight: 700, wordBreak: "break-word" }}>
+                    {k.keyword}
+                  </Typography>
+                  <Chip label={`${k.count} hits`} size="small" />
+                </Box>
+              ))}
+            </Stack>
+          )}
+        </Paper>
+      </Box>
 
       <Paper sx={{ p: 2.5, borderRadius: 4, mt: 3 }}>
         <Typography sx={{ fontWeight: 900, mb: 2 }}>
@@ -126,14 +134,16 @@ export default function ScamIntelligencePanel({ intelligence, loading }) {
           <Typography sx={{ opacity: 0.7 }}>No reports yet.</Typography>
         ) : (
           <Stack spacing={1.5}>
-            {latestReports.map((r) => (
-              <Box key={r.id}>
+            {latestReports.map((r, index) => (
+              <Box key={r.id || index}>
                 <Box
                   sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
                     mb: 0.5,
+                    gap: 1,
+                    flexWrap: "wrap",
                   }}
                 >
                   <Chip
@@ -155,7 +165,7 @@ export default function ScamIntelligencePanel({ intelligence, loading }) {
                   {r.content}
                 </Typography>
 
-                <Divider sx={{ mt: 1.5 }} />
+                {index !== latestReports.length - 1 && <Divider sx={{ mt: 1.5 }} />}
               </Box>
             ))}
           </Stack>

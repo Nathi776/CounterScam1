@@ -15,7 +15,7 @@ import {
   deleteReport,
 } from "../api/api";
 
-export default function Reports() {
+export default function Reports({ setView }) {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
@@ -83,6 +83,7 @@ export default function Reports() {
       onRefresh={loadReports}
       onLogout={logout}
       currentView="reports"
+      setView={setView}
     >
       <Box sx={{ mb: 2 }}>
         <Typography variant="h4">Reported Scams</Typography>
@@ -91,10 +92,11 @@ export default function Reports() {
         </Typography>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+      <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
         <Chip label={`Total Reports: ${reports.length}`} color="primary" />
-        <Chip label={`Pending: ${reports.filter(r => r.status === "pending").length}`} />
-        <Chip label={`Confirmed: ${reports.filter(r => r.status === "confirmed").length}`} color="error" />
+        <Chip label={`Pending: ${reports.filter((r) => r.status === "pending").length}`} />
+        <Chip label={`Confirmed: ${reports.filter((r) => r.status === "confirmed").length}`} color="error" />
+        <Chip label={`Safe: ${reports.filter((r) => r.status === "safe").length}`} color="success" />
       </Box>
 
       {!loading && (

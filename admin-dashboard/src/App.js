@@ -7,10 +7,12 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [view, setView] = useState("dashboard");
 
-  if (!token) return <Login setToken={setToken} />;
+  if (!token) {
+    return <Login setToken={setToken} />;
+  }
 
   if (view === "reports") {
-    return <Reports onBack={() => setView("dashboard")} />;
+    return <Reports setView={setView} />;
   }
 
   return <Dashboard setView={setView} />;

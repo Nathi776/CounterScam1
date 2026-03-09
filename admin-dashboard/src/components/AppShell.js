@@ -19,11 +19,17 @@ import TimelineIcon from "@mui/icons-material/Timeline";
 import LogoutIcon from "@mui/icons-material/Logout";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ShieldIcon from "@mui/icons-material/Shield";
-//import ReportIcon from "@mui/icons-material/Report";
 
 const drawerWidth = 260;
 
-export default function AppShell({ title, onRefresh, onLogout, children, currentView, setView }) {
+export default function AppShell({
+  title,
+  onRefresh,
+  onLogout,
+  children,
+  currentView,
+  setView,
+}) {
   const nav = [
     { label: "Overview", icon: <DashboardIcon />, view: "overview" },
     { label: "Recent checks", icon: <LinkIcon />, view: "recent" },
@@ -31,14 +37,16 @@ export default function AppShell({ title, onRefresh, onLogout, children, current
     { label: "Reports", icon: <ShieldIcon />, view: "reports" },
   ];
 
-  const goToReports = () => {
-    window.location.hash = "#reports";
-    window.location.reload();
-  };
+  const handleNavClick = (view) => {
+    if (typeof setView === "function") {
+      setView(view);
+      return;
+    }
 
-  const goToDashboard = () => {
-    window.location.hash = "";
-    window.location.reload();
+    const section = document.getElementById(view);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   return (
@@ -100,7 +108,7 @@ export default function AppShell({ title, onRefresh, onLogout, children, current
               <ListItemButton
                 key={n.view}
                 selected={currentView === n.view}
-                onClick={() => setView(n.view)}
+                onClick={() => handleNavClick(n.view)}
                 sx={{
                   borderRadius: 3,
                   mb: 0.5,
