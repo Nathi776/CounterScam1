@@ -4,6 +4,7 @@ import {
   Typography,
   Snackbar,
   Alert,
+  Chip,
 } from "@mui/material";
 import AppShell from "../components/AppShell";
 import ReportsTable from "../components/ReportsTable";
@@ -88,6 +89,12 @@ export default function Reports() {
         <Typography sx={{ opacity: 0.7, mt: 0.5 }}>
           Review user-submitted scam links and messages.
         </Typography>
+      </Box>
+
+      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+        <Chip label={`Total Reports: ${reports.length}`} color="primary" />
+        <Chip label={`Pending: ${reports.filter(r => r.status === "pending").length}`} />
+        <Chip label={`Confirmed: ${reports.filter(r => r.status === "confirmed").length}`} color="error" />
       </Box>
 
       {!loading && (

@@ -198,7 +198,7 @@ export default function Dashboard() {
           {loading ? (
             <Skeleton variant="rounded" height={110} />
           ) : (
-            <StatCard title="Total URL scans" value={stats.total_urls || 0} />
+            <StatCard title="Total Scans" value={totalChecks} />
           )}
         </Grid>
 
@@ -206,10 +206,7 @@ export default function Dashboard() {
           {loading ? (
             <Skeleton variant="rounded" height={110} />
           ) : (
-            <StatCard
-              title="Total message scans"
-              value={stats.total_messages || 0}
-            />
+            <StatCard title="Flagged Detections" value={totalFlagged} />
           )}
         </Grid>
 
@@ -217,7 +214,7 @@ export default function Dashboard() {
           {loading ? (
             <Skeleton variant="rounded" height={110} />
           ) : (
-            <StatCard title="Total reports" value={stats.total_reports || 0} />
+            <StatCard title="Total Reports" value={stats.total_reports || 0} />
           )}
         </Grid>
 
@@ -225,44 +222,7 @@ export default function Dashboard() {
           {loading ? (
             <Skeleton variant="rounded" height={110} />
           ) : (
-            <StatCard title="Flag rate" value={flagRate} hint="flagged / total scans" />
-          )}
-        </Grid>
-      </Grid>
-
-      <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-        <Grid item xs={12} md={3}>
-          {loading ? (
-            <Skeleton variant="rounded" height={110} />
-          ) : (
-            <StatCard title="Flagged URLs" value={stats.flagged_urls || 0} />
-          )}
-        </Grid>
-
-        <Grid item xs={12} md={3}>
-          {loading ? (
-            <Skeleton variant="rounded" height={110} />
-          ) : (
-            <StatCard
-              title="Flagged messages"
-              value={stats.flagged_messages || 0}
-            />
-          )}
-        </Grid>
-
-        <Grid item xs={12} md={3}>
-          {loading ? (
-            <Skeleton variant="rounded" height={110} />
-          ) : (
-            <StatCard title="Total checks" value={totalChecks} />
-          )}
-        </Grid>
-
-        <Grid item xs={12} md={3}>
-          {loading ? (
-            <Skeleton variant="rounded" height={110} />
-          ) : (
-            <StatCard title="Total flagged" value={totalFlagged} />
+            <StatCard title="Flag Rate" value={flagRate} hint="flagged / total scans" />
           )}
         </Grid>
       </Grid>

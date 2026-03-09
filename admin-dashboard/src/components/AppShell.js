@@ -23,18 +23,12 @@ import ShieldIcon from "@mui/icons-material/Shield";
 
 const drawerWidth = 260;
 
-export default function AppShell({
-  title,
-  onRefresh,
-  onLogout,
-  children,
-  currentView = "dashboard",
-}) {
+export default function AppShell({ title, onRefresh, onLogout, children, currentView, setView }) {
   const nav = [
-    { label: "Overview", icon: <DashboardIcon />, target: "overview" },
-    { label: "Recent checks", icon: <LinkIcon />, target: "recent" },
-    { label: "Analytics", icon: <TimelineIcon />, target: "analytics" },
-    { label: "Reports", icon: <ShieldIcon />, target: "reports-page" },
+    { label: "Overview", icon: <DashboardIcon />, view: "overview" },
+    { label: "Recent checks", icon: <LinkIcon />, view: "recent" },
+    { label: "Analytics", icon: <TimelineIcon />, view: "analytics" },
+    { label: "Reports", icon: <ShieldIcon />, view: "reports" },
   ];
 
   const goToReports = () => {
@@ -45,21 +39,6 @@ export default function AppShell({
   const goToDashboard = () => {
     window.location.hash = "";
     window.location.reload();
-  };
-
-  const scrollTo = (id) => {
-    if (id === "reports-page") {
-      goToReports();
-      return;
-    }
-
-    if (currentView === "reports") {
-      goToDashboard();
-      return;
-    }
-
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
@@ -119,16 +98,16 @@ export default function AppShell({
           <List>
             {nav.map((n) => (
               <ListItemButton
-                key={n.target}
-                onClick={() => scrollTo(n.target)}
-                selected={
-                  (currentView === "reports" && n.target === "reports-page") ||
-                  (currentView !== "reports" && n.target !== "reports-page")
-                }
+                key={n.view}
+                selected={currentView === n.view}
+                onClick={() => setView(n.view)}
                 sx={{
                   borderRadius: 3,
                   mb: 0.5,
-                  "&.Mui-selected, &:hover": {
+                  "&.Mui-selected": {
+                    bgcolor: "rgba(124,58,237,0.2)",
+                  },
+                  "&:hover": {
                     bgcolor: "rgba(124,58,237,0.12)",
                   },
                 }}

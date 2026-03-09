@@ -1,18 +1,19 @@
 import React, { useState } from "react";
 import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
 import Reports from "./pages/Reports";
+import Login from "./pages/Login";
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
+  const [view, setView] = useState("dashboard");
 
-  if (!token) {
-    return <Login setToken={setToken} />;
+  if (!token) return <Login setToken={setToken} />;
+
+  if (view === "reports") {
+    return <Reports onBack={() => setView("dashboard")} />;
   }
 
-  const isReportsPage = window.location.hash === "#reports";
-
-  return isReportsPage ? <Reports /> : <Dashboard />;
+  return <Dashboard setView={setView} />;
 }
 
 export default App;

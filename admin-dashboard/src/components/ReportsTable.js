@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  Paper,
   Typography,
   Table,
   TableHead,
@@ -11,6 +10,8 @@ import {
   Box,
   Button,
   Stack,
+  Card,
+  CardContent,
 } from "@mui/material";
 
 const statusChip = (status) => {
@@ -29,21 +30,24 @@ export default function ReportsTable({
 }) {
   if (!reports || reports.length === 0) {
     return (
-      <Paper sx={{ p: 2.5, borderRadius: 4 }}>
-        <Typography sx={{ opacity: 0.7 }}>
-          No reports submitted yet.
-        </Typography>
-      </Paper>
+      <Card sx={{ borderRadius: 4 }}>
+        <CardContent>
+          <Typography sx={{ opacity: 0.7 }}>
+            No reports submitted yet.
+          </Typography>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <Paper sx={{ p: 2.5, borderRadius: 4 }}>
-      <Typography sx={{ fontWeight: 900, mb: 2 }}>
-        User Scam Reports
-      </Typography>
+    <Card sx={{ borderRadius: 4 }}>
+      <CardContent>
+        <Typography sx={{ fontWeight: 900, mb: 2 }}>
+          User Scam Reports
+        </Typography>
 
-      <Table size="small">
+        <Table size="small">
         <TableHead>
           <TableRow>
             <TableCell width={180}>Time</TableCell>
@@ -127,6 +131,7 @@ export default function ReportsTable({
           })}
         </TableBody>
       </Table>
-    </Paper>
+      </CardContent>
+    </Card>
   );
 }

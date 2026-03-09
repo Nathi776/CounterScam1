@@ -458,47 +458,52 @@ def delete_report(report_id: int, db=Depends(get_db), _=Depends(require_admin)):
     return {"status": "deleted", "id": report_id}
 
 
+from collections import Counter
+import re
+from urllib.parse import urlparse
+
 @app.get("/admin/intelligence")
 def get_intelligence(db=Depends(get_db), _=Depends(require_admin)):
-    reports = db.query(ReportContent).order_by(ReportContent.created_at.desc()).all()
+    reports = db.query(ReportContent).all()
 
     total_reports = len(reports)
     url_reports = [r for r in reports if r.content_type == "url"]
     message_reports = [r for r in reports if r.content_type == "message"]
 
     # Top reported domains
-    domains = []
+    domain_counter = Counter()
     for r in url_reports:
         try:
-            parsed = urlparse(r.content)
-            domain = parsed.netloc or parsed.path
-            domain = domain.lower().replace("www.", "").strip()
+            parsed = urlparse(r.content.strip())
+            domain = (parsed.netloc or parsed.path or "").lower().replace("www.", "")
             if domain:
-                domains.append(domain)
+                domain_counter[domain] += 1
         except Exception:
             continue
 
     top_domains = [
         {"domain": domain, "count": count}
-        for domain, count in Counter(domains).most_common(10)
+        for domain, count in domain_counter.most_common(8)
     ]
 
     # Top scam keywords from message reports
     stopwords = {
-        "the", "and", "for", "you", "your", "that", "with", "this", "have",
-        "from", "are", "was", "will", "has", "http", "https", "www", "com",
-        "net", "org", "co", "za", "our", "but", "not", "all", "get", "now",
-        "here", "click", "please", "dial"
+        "this", "that", "with", "have", "from", "your", "will", "click",
+        "here", "http", "https", "www", "com", "co", "za", "please",
+        "urgent", "message", "link", "received", "report", "scam",
+        "dial", "call", "bank", "account"
     }
 
-    words = []
+    keyword_counter = Counter()
     for r in message_reports:
-        tokens = re.findall(r"\b[a-zA-Z]{4,}\b", r.content.lower())
-        words.extend([t for t in tokens if t not in stopwords])
+        words = re.findall(r"\b[a-zA-Z]{4,}\b", r.content.lower())
+        for word in words:
+            if word not in stopwords:
+                keyword_counter[word] += 1
 
     top_keywords = [
         {"keyword": word, "count": count}
-        for word, count in Counter(words).most_common(10)
+        for word, count in keyword_counter.most_common(8)
     ]
 
     latest_reports = [
@@ -506,10 +511,13 @@ def get_intelligence(db=Depends(get_db), _=Depends(require_admin)):
             "id": r.id,
             "content_type": r.content_type,
             "content": r.content,
-            "status": getattr(r, "status", "pending"),
-            "created_at": r.created_at.isoformat() if r.created_at else None,
+            "created_at": r.created_at.isoformat() if hasattr(r, "created_at") and r.created_at else None,
         }
-        for r in reports[:10]
+        for r in sorted(
+            reports,
+            key=lambda x: x.created_at if hasattr(x, "created_at") and x.created_at else 0,
+            reverse=True
+        )[:10]
     ]
 
     return {
