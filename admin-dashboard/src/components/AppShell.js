@@ -14,7 +14,8 @@ import {
 } from "@mui/material";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import LinkIcon from "@mui/icons-material/Link";
+import ReportProblemIcon from "@mui/icons-material/ReportProblem";
+import StorageIcon from "@mui/icons-material/Storage";
 import TimelineIcon from "@mui/icons-material/Timeline";
 import LogoutIcon from "@mui/icons-material/Logout";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -32,22 +33,10 @@ export default function AppShell({
 }) {
   const nav = [
     { label: "Overview", icon: <DashboardIcon />, view: "overview" },
-    { label: "Recent checks", icon: <LinkIcon />, view: "recent" },
+    { label: "Reports", icon: <ReportProblemIcon />, view: "reports" },
+    { label: "Training Data", icon: <StorageIcon />, view: "training" },
     { label: "Analytics", icon: <TimelineIcon />, view: "analytics" },
-    { label: "Reports", icon: <ShieldIcon />, view: "reports" },
   ];
-
-  const handleNavClick = (view) => {
-    if (typeof setView === "function") {
-      setView(view);
-      return;
-    }
-
-    const section = document.getElementById(view);
-    if (section) {
-      section.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
@@ -108,7 +97,7 @@ export default function AppShell({
               <ListItemButton
                 key={n.view}
                 selected={currentView === n.view}
-                onClick={() => handleNavClick(n.view)}
+                onClick={() => setView && setView(n.view)}
                 sx={{
                   borderRadius: 3,
                   mb: 0.5,
@@ -127,11 +116,16 @@ export default function AppShell({
           </List>
 
           <Box sx={{ mt: 2, p: 2, borderRadius: 4, bgcolor: "rgba(255,255,255,0.04)" }}>
-            <Typography sx={{ fontWeight: 800, fontSize: 13 }}>Tip</Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: 13 }}>Focus</Typography>
             <Typography sx={{ fontSize: 12, opacity: 0.75, mt: 0.5 }}>
-              {currentView === "reports"
-                ? "Review user-submitted scam reports here."
-                : "Run a few URL checks to see your charts and recent history update."}
+              {currentView === "overview" &&
+                "Monitor pending reports and recent additions to the scam database."}
+              {currentView === "reports" &&
+                "Review user-submitted reports and decide whether they are scams or safe."}
+              {currentView === "training" &&
+                "Manage confirmed scam data used to strengthen your detection system."}
+              {currentView === "analytics" &&
+                "Track reporting trends and confirmed scam activity over time."}
             </Typography>
           </Box>
         </Box>
